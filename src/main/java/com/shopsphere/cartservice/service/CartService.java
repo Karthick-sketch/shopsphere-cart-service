@@ -1,74 +1,83 @@
 package com.shopsphere.cartservice.service;
 
+import com.shopsphere.cartservice.dto.CartResponse;
+import com.shopsphere.cartservice.dto.product.*;
 import com.shopsphere.cartservice.entity.Cart;
-import com.shopsphere.cartservice.entity.CartItem;
-import com.shopsphere.cartservice.repository.CartItemRepository;
+import com.shopsphere.cartservice.feign.ProductInterface;
 import com.shopsphere.cartservice.repository.CartRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class CartService {
 
   private final CartRepository cartRepository;
-  private final CartItemRepository cartItemRepository;
 
-  public List<Cart> findAll() {
-    return cartRepository.findAll();
+  private final ProductInterface productInterface;
+
+  public List<CartResponse> fetchCart(Long userId) {
+    List<Cart> cartItems = cartRepository.findByUserId(userId);
+    List<ProductInfo> productInfos = getProductInfos(getProductIds(cartItems));
+
+    return cartItems
+      .stream()
+      .map(cart ->
+        toCartResponse(cart, findProductInfo(cart.getProductId(), productInfos))
+      )
+      .toList();
   }
 
-  public Cart findById(Long id) {
-    return cartRepository
-      .findById(id)
-      .orElseThrow(() -> new RuntimeException("Cart not found with id: " + id));
-  }
-
-  public Cart findByUserId(Long userId) {
-    return cartRepository
-      .findByUserId(userId)
-      .orElseThrow(() ->
-        new RuntimeException("Cart not found for user id: " + userId)
-      );
-  }
-
-  public Cart create(Cart cart) {
+  public Cart addItem(Cart cart) {
     return cartRepository.save(cart);
   }
 
-  public CartItem addItem(Long cartId, CartItem item) {
-    Cart cart = findById(cartId);
-    item.setCart(cart);
-    return cartItemRepository.save(item);
-  }
-
-  public CartItem updateItem(Long itemId, CartItem updated) {
-    CartItem existing = cartItemRepository
+  public Cart updateItem(Long itemId, Cart updated) {
+    Cart existing = cartRepository
       .findById(itemId)
       .orElseThrow(() ->
         new RuntimeException("Cart item not found with id: " + itemId)
       );
     existing.setQuantity(updated.getQuantity());
-    return cartItemRepository.save(existing);
+    return cartRepository.save(existing);
   }
 
   public void removeItem(Long itemId) {
-    cartItemRepository.deleteById(itemId);
+    cartRepository.deleteById(itemId);
   }
 
-  @Transactional
-  public void clearCart(Long cartId) {
-    cartItemRepository.deleteByCartId(cartId);
+  public void clearCart(Long userId) {
+    cartRepository.deleteByUserId(userId);
   }
 
-  public void delete(Long id) {
-    findById(id);
-    cartRepository.deleteById(id);
+  private ProductIdsRequest getProductIds(List<Cart> cartItems) {
+    return new ProductIdsRequest(
+      cartItems
+        .stream()
+        .map(cart -> cart.getProductId())
+        .toList()
+    );
   }
 
-  public List<CartItem> findItemsByCartId(Long cartId) {
-    return cartItemRepository.findByCartId(cartId);
+  private List<ProductInfo> getProductInfos(ProductIdsRequest productIds) {
+    return productInterface.getProductInfos(productIds).getBody();
+  }
+
+  private ProductInfo findProductInfo(Long id, List<ProductInfo> productInfos) {
+    return productInfos
+      .stream()
+      .filter(p -> p.getId().equals(id))
+      .findFirst()
+      .orElse(null);
+  }
+
+  private CartResponse toCartResponse(Cart cart, ProductInfo productInfo) {
+    return new CartResponse(
+      cart.getId(),
+      cart.getUserId(),
+      cart.getQuantity(),
+      productInfo
+    );
   }
 }

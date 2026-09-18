@@ -1,15 +1,21 @@
 package com.shopsphere.cartservice.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "cart")
+@Table(
+  name = "cart",
+  uniqueConstraints = {
+    @UniqueConstraint(
+      name = "uk_cart_user_product",
+      columnNames = { "user_id", "product_id" }
+    ),
+  }
+)
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,7 +29,9 @@ public class Cart {
   @Column(nullable = false)
   private Long userId;
 
-  @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-  @Builder.Default
-  private List<CartItem> items = new ArrayList<>();
+  @Column(nullable = false)
+  private Long productId;
+
+  @Column(nullable = false)
+  private Integer quantity;
 }

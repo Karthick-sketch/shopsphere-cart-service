@@ -1,7 +1,7 @@
 package com.shopsphere.cartservice.controller;
 
+import com.shopsphere.cartservice.dto.CartResponse;
 import com.shopsphere.cartservice.entity.Cart;
-import com.shopsphere.cartservice.entity.CartItem;
 import com.shopsphere.cartservice.service.CartService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,68 +16,37 @@ public class CartController {
 
   private final CartService cartService;
 
-  @GetMapping
-  public ResponseEntity<List<Cart>> getAll() {
-    return ResponseEntity.ok(cartService.findAll());
-  }
-
-  @GetMapping("/{id}")
-  public ResponseEntity<Cart> getById(@PathVariable Long id) {
-    return ResponseEntity.ok(cartService.findById(id));
-  }
-
   @GetMapping("/user/{userId}")
-  public ResponseEntity<Cart> getByUserId(@PathVariable Long userId) {
-    return ResponseEntity.ok(cartService.findByUserId(userId));
+  public ResponseEntity<List<CartResponse>> getCart(@PathVariable Long userId) {
+    return ResponseEntity.ok(cartService.fetchCart(userId));
   }
 
   @PostMapping
-  public ResponseEntity<Cart> create(@RequestBody Cart cart) {
+  public ResponseEntity<Cart> addItem(@RequestBody Cart cart) {
     return ResponseEntity.status(HttpStatus.CREATED).body(
-      cartService.create(cart)
+      cartService.addItem(cart)
+    );
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<Cart> updateItem(
+    @PathVariable Long id,
+    @RequestBody Cart cart
+  ) {
+    return ResponseEntity.status(HttpStatus.OK).body(
+      cartService.updateItem(id, cart)
     );
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
-    cartService.delete(id);
+  public ResponseEntity<Void> removeItem(@PathVariable Long id) {
+    cartService.removeItem(id);
     return ResponseEntity.noContent().build();
   }
 
-  // --- Cart Item endpoints ---
-
-  @GetMapping("/{cartId}/items")
-  public ResponseEntity<List<CartItem>> getItems(@PathVariable Long cartId) {
-    return ResponseEntity.ok(cartService.findItemsByCartId(cartId));
-  }
-
-  @PostMapping("/{cartId}/items")
-  public ResponseEntity<CartItem> addItem(
-    @PathVariable Long cartId,
-    @RequestBody CartItem item
-  ) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(
-      cartService.addItem(cartId, item)
-    );
-  }
-
-  @PutMapping("/items/{itemId}")
-  public ResponseEntity<CartItem> updateItem(
-    @PathVariable Long itemId,
-    @RequestBody CartItem item
-  ) {
-    return ResponseEntity.ok(cartService.updateItem(itemId, item));
-  }
-
-  @DeleteMapping("/items/{itemId}")
-  public ResponseEntity<Void> removeItem(@PathVariable Long itemId) {
-    cartService.removeItem(itemId);
-    return ResponseEntity.noContent().build();
-  }
-
-  @DeleteMapping("/{cartId}/items")
-  public ResponseEntity<Void> clearCart(@PathVariable Long cartId) {
-    cartService.clearCart(cartId);
+  @DeleteMapping("/user/{userId}")
+  public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
+    cartService.clearCart(userId);
     return ResponseEntity.noContent().build();
   }
 }
