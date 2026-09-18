@@ -22,14 +22,14 @@ public class CartController {
   }
 
   @PostMapping
-  public ResponseEntity<Cart> addItem(@RequestBody Cart cart) {
+  public ResponseEntity<CartResponse> addItem(@RequestBody Cart cart) {
     return ResponseEntity.status(HttpStatus.CREATED).body(
       cartService.addItem(cart)
     );
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Cart> updateItem(
+  public ResponseEntity<CartResponse> updateItem(
     @PathVariable Long id,
     @RequestBody Cart cart
   ) {

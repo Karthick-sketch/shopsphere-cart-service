@@ -29,18 +29,23 @@ public class CartService {
       .toList();
   }
 
-  public Cart addItem(Cart cart) {
-    return cartRepository.save(cart);
+  public CartResponse addItem(Cart cart) {
+    cart = cartRepository.save(cart);
+    return toCartResponse(cart, getProductInfoById(cart.getProductId()));
   }
 
-  public Cart updateItem(Long itemId, Cart updated) {
+  public CartResponse updateItem(Long itemId, Cart updated) {
     Cart existing = cartRepository
       .findById(itemId)
       .orElseThrow(() ->
         new RuntimeException("Cart item not found with id: " + itemId)
       );
     existing.setQuantity(updated.getQuantity());
-    return cartRepository.save(existing);
+    existing = cartRepository.save(existing);
+    return toCartResponse(
+      existing,
+      getProductInfoById(existing.getProductId())
+    );
   }
 
   public void removeItem(Long itemId) {
@@ -49,6 +54,10 @@ public class CartService {
 
   public void clearCart(Long userId) {
     cartRepository.deleteByUserId(userId);
+  }
+
+  private ProductInfo getProductInfoById(Long id) {
+    return productInterface.getInfo(id);
   }
 
   private ProductIdsRequest getProductIds(List<Cart> cartItems) {
@@ -61,7 +70,7 @@ public class CartService {
   }
 
   private List<ProductInfo> getProductInfos(ProductIdsRequest productIds) {
-    return productInterface.getProductInfos(productIds).getBody();
+    return productInterface.getInfos(productIds).getBody();
   }
 
   private ProductInfo findProductInfo(Long id, List<ProductInfo> productInfos) {
