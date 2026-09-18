@@ -3,8 +3,10 @@ package com.shopsphere.cartservice.service;
 import com.shopsphere.cartservice.dto.CartResponse;
 import com.shopsphere.cartservice.dto.product.*;
 import com.shopsphere.cartservice.entity.Cart;
+import com.shopsphere.cartservice.exception.CartItemNotFoundException;
 import com.shopsphere.cartservice.feign.ProductInterface;
 import com.shopsphere.cartservice.repository.CartRepository;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,17 +31,19 @@ public class CartService {
       .toList();
   }
 
+  public Cart findItem(Long id) {
+    return cartRepository
+      .findById(id)
+      .orElseThrow(CartItemNotFoundException::new);
+  }
+
   public CartResponse addItem(Cart cart) {
     cart = cartRepository.save(cart);
     return toCartResponse(cart, getProductInfoById(cart.getProductId()));
   }
 
   public CartResponse updateItem(Long itemId, Cart updated) {
-    Cart existing = cartRepository
-      .findById(itemId)
-      .orElseThrow(() ->
-        new RuntimeException("Cart item not found with id: " + itemId)
-      );
+    Cart existing = findItem(itemId);
     existing.setQuantity(updated.getQuantity());
     existing = cartRepository.save(existing);
     return toCartResponse(
@@ -49,9 +53,10 @@ public class CartService {
   }
 
   public void removeItem(Long itemId) {
-    cartRepository.deleteById(itemId);
+    cartRepository.delete(findItem(itemId));
   }
 
+  @Transactional
   public void clearCart(Long userId) {
     cartRepository.deleteByUserId(userId);
   }
