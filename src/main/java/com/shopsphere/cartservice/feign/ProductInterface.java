@@ -1,5 +1,6 @@
 package com.shopsphere.cartservice.feign;
 
+import com.shopsphere.cartservice.config.FeignAuthConfig;
 import com.shopsphere.cartservice.dto.product.*;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient("SHOPSPHERE-PRODUCT-SERVICE")
+@FeignClient(name = "SHOPSPHERE-PRODUCT-SERVICE", configuration = FeignAuthConfig.class)
 public interface ProductInterface {
   @GetMapping("/api/products/info/{id}")
   ProductInfo getInfo(@PathVariable Long id);
