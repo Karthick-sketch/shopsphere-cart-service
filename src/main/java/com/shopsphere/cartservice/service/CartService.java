@@ -1,8 +1,10 @@
 package com.shopsphere.cartservice.service;
 
 import com.shopsphere.cartservice.dto.CartResponse;
+import com.shopsphere.cartservice.dto.payment.PaymentStatusChangedData;
 import com.shopsphere.cartservice.dto.product.*;
 import com.shopsphere.cartservice.entity.Cart;
+import com.shopsphere.cartservice.enums.PaymentStatus;
 import com.shopsphere.cartservice.exception.CartItemNotFoundException;
 import com.shopsphere.cartservice.feign.ProductInterface;
 import com.shopsphere.cartservice.repository.CartRepository;
@@ -59,6 +61,13 @@ public class CartService {
   @Transactional
   public void clearCart(Long userId) {
     cartRepository.deleteByUserId(userId);
+  }
+
+  @Transactional
+  public void handlePaymentStatusChanged(PaymentStatusChangedData data) {
+    if (data.getStatus() == PaymentStatus.SUCCESS) {
+      clearCart(data.getUserId());
+    }
   }
 
   private ProductInfo getProductInfoById(Long id) {
