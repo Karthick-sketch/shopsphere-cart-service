@@ -23,7 +23,7 @@ public class KafkaConsumerConfig {
   private String groupId;
 
   @Bean
-  public ConsumerFactory<String, PaymentStatusChangedEvent> consumerFactory() {
+  public ConsumerFactory<String, OrderPlacedEvent> consumerFactory() {
     Map<String, Object> props = new HashMap<>();
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -40,8 +40,8 @@ public class KafkaConsumerConfig {
       JacksonJsonDeserializer.class
     );
 
-    JacksonJsonDeserializer<PaymentStatusChangedEvent> valueDeserializer =
-      new JacksonJsonDeserializer<>(PaymentStatusChangedEvent.class);
+    JacksonJsonDeserializer<OrderPlacedEvent> valueDeserializer =
+      new JacksonJsonDeserializer<>(OrderPlacedEvent.class);
     valueDeserializer.addTrustedPackages(KafkaConstants.TRUST_ALL_PACKAGES);
     valueDeserializer.setUseTypeHeaders(false);
 
@@ -55,12 +55,10 @@ public class KafkaConsumerConfig {
   @Bean
   public ConcurrentKafkaListenerContainerFactory<
     String,
-    PaymentStatusChangedEvent
+    OrderPlacedEvent
   > kafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<
-      String,
-      PaymentStatusChangedEvent
-    > factory = new ConcurrentKafkaListenerContainerFactory<>();
+    ConcurrentKafkaListenerContainerFactory<String, OrderPlacedEvent> factory =
+      new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory());
     return factory;
   }

@@ -1,15 +1,15 @@
 package com.shopsphere.cartservice.kafka;
 
-import com.shopsphere.cartservice.dto.payment.PaymentStatusChangedData;
+import com.shopsphere.cartservice.dto.order.OrderPlacedData;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
 
 @Data
-public class PaymentStatusChangedEvent {
+public class OrderPlacedEvent {
 
   private UUID eventId;
   private String eventType;
   private Instant initiatedAt;
-  private PaymentStatusChangedData data;
+  private OrderPlacedData data;
 }

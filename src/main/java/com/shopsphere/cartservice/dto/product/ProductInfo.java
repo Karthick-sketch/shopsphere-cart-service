@@ -15,6 +15,5 @@ public class ProductInfo {
   private Long id;
   private String name;
   private BigDecimal price;
-  private Integer stock;
-  private String image;
+  private String imageUrl;
 }

@@ -12,10 +12,10 @@ public class KafkaConsumerService {
   private final CartService cartService;
 
   @KafkaListener(
-    topics = "${kafka.topic.payment-status-changed}",
+    topics = "${kafka.topic.order-placed}",
     groupId = "${kafka.consumer.group-id}"
   )
-  public void handlePaymentStatusChangedEvent(PaymentStatusChangedEvent event) {
-    cartService.handlePaymentStatusChanged(event.getData());
+  public void handleOrderPlacedEvent(OrderPlacedEvent event) {
+    cartService.handleOrderPlaced(event.getData());
   }
 }

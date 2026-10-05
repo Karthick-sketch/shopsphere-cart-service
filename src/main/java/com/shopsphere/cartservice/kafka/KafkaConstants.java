@@ -9,6 +9,5 @@ public final class KafkaConstants {
   public static final String TRUST_ALL_PACKAGES = "*";
 
   // event types
-  public static final String PAYMENT_STATUS_CHANGED_EVENT_TYPE =
-    "PAYMENT_STATUS_CHANGED";
+  public static final String ORDER_PLACED_EVENT_TYPE = "ORDER_PLACED";
 }
