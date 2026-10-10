@@ -1,22 +1,29 @@
 package com.shopsphere.cartservice.exception;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
 
   @ExceptionHandler(CartItemNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public Map<String, String> handleCartItemNotFoundException(
+  public ResponseEntity<?> handleCartItemNotFoundException(
     CartItemNotFoundException ex
   ) {
-    Map<String, String> error = new HashMap<>();
-    error.put("message", ex.getMessage());
-    return error;
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+      Map.of("message", ex.getMessage())
+    );
+  }
+
+  @ExceptionHandler(InsufficientStockException.class)
+  public ResponseEntity<?> handleInsufficientStockException(
+    InsufficientStockException ex
+  ) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(
+      Map.of("message", ex.getMessage())
+    );
   }
 }

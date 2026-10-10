@@ -1,11 +1,13 @@
 package com.shopsphere.cartservice.service;
 
 import com.shopsphere.cartservice.dto.CartResponse;
+import com.shopsphere.cartservice.dto.inventory.*;
 import com.shopsphere.cartservice.dto.order.OrderPlacedData;
 import com.shopsphere.cartservice.dto.product.*;
 import com.shopsphere.cartservice.entity.Cart;
 import com.shopsphere.cartservice.exception.CartItemNotFoundException;
-import com.shopsphere.cartservice.feign.ProductInterface;
+import com.shopsphere.cartservice.exception.InsufficientStockException;
+import com.shopsphere.cartservice.feign.*;
 import com.shopsphere.cartservice.repository.CartRepository;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -18,6 +20,7 @@ public class CartService {
 
   private final CartRepository cartRepository;
 
+  private final InventoryInterface inventoryInterface;
   private final ProductInterface productInterface;
 
   public List<CartResponse> fetchCart(Long userId) {
@@ -39,18 +42,31 @@ public class CartService {
   }
 
   public CartResponse addItem(Cart cart) {
+    checkAvailability(cart);
     cart = cartRepository.save(cart);
     return toCartResponse(cart, getProductInfoById(cart.getProductId()));
   }
 
-  public CartResponse updateItem(Long itemId, Cart updated) {
+  public CartResponse updateItem(Long itemId, Cart updatedCart) {
+    checkAvailability(updatedCart);
     Cart existing = findItem(itemId);
-    existing.setQuantity(updated.getQuantity());
+    existing.setQuantity(updatedCart.getQuantity());
     existing = cartRepository.save(existing);
     return toCartResponse(
       existing,
       getProductInfoById(existing.getProductId())
     );
+  }
+
+  private void checkAvailability(Cart cart) {
+    AvailabilityResponse response = inventoryInterface
+      .getAvailability(toAvailablityRequest(cart))
+      .getBody();
+    if (response == null || !response.getIsAvailable()) {
+      throw new InsufficientStockException(
+        "Required stock is not available for product " + cart.getProductId()
+      );
+    }
   }
 
   public void removeItem(Long itemId) {
@@ -99,5 +115,9 @@ public class CartService {
       cart.getQuantity(),
       productInfo
     );
+  }
+
+  private AvailabilityRequest toAvailablityRequest(Cart cart) {
+    return new AvailabilityRequest(cart.getProductId(), cart.getQuantity());
   }
 }
